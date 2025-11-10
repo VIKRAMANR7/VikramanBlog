@@ -11,6 +11,14 @@
 
 ## ✨ Features
 
+## 🖼️ Screenshots
+
+| 🏠 Home Page | 📊 Admin Dashboard | ✍️ Add Blog | 📚 List Blogs |
+|--------------|--------------------|--------------|----------------|
+| ![Home Page](https://raw.githubusercontent.com/VIKRAMANR7/VikramanBlog/main/client/public/screenshots/home.png) | ![Dashboard](https://raw.githubusercontent.com/VIKRAMANR7/VikramanBlog/main/client/public/screenshots/dashboard.png) | ![Add Blog](https://raw.githubusercontent.com/VIKRAMANR7/VikramanBlog/main/client/public/screenshots/addblog.png) | ![List Blogs](https://raw.githubusercontent.com/VIKRAMANR7/VikramanBlog/main/client/public/screenshots/listblog.png) |
+
+> 💡 **Tip:** These screenshots showcase both the public blog interface and the admin dashboard views.
+
 ### 🧠 AI-Powered Blog Creation
 
 - **Groq AI Integration** – Generate blog content automatically from short prompts.

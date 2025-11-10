@@ -1,27 +1,46 @@
 {
-  "name": "server",
+  "name": "vikramanblog-server",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "scripts": {
-    "server": "nodemon server.js",
-    "start": "node server.js"
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc",
+    "typecheck": "tsc --noEmit",
+    "start": "node dist/server.js",
+    "lint": "eslint . --ext .ts",
+    "format": "prettier --write ."
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "blog",
+    "express",
+    "node",
+    "mongodb",
+    "api"
+  ],
+  "author": "Vikraman R",
+  "engines": {
+    "node": ">=24.8.0"
+  },
   "license": "ISC",
   "type": "module",
-  "description": "",
+  "description": "Backend REST API for Vikraman Blog, providing blog management, authentication, and image upload features using Express, MongoDB, JWT, and ImageKit.",
   "dependencies": {
-    "@google/genai": "^1.6.0",
     "cors": "^2.8.5",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
+    "groq-sdk": "^0.34.0",
     "imagekit": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.16.0",
     "multer": "^2.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.10"
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.5",
+    "@types/jsonwebtoken": "^9.0.10",
+    "@types/multer": "^2.0.0",
+    "@types/node": "^24.10.0",
+    "tsx": "^4.20.6",
+    "typescript": "^5.9.3"
   }
 }

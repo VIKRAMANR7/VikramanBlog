@@ -1,0 +1,197 @@
+import axios from "axios";
+import Moment from "moment";
+import { FormEvent, useEffect, useState } from "react";
+import toast from "react-hot-toast";
+import { useParams } from "react-router-dom";
+import { Blog as BlogType } from "../../context/AppContext";
+import { assets } from "../assets/assets";
+import Footer from "../components/Footer";
+import Loader from "../components/Loader";
+import Navbar from "../components/Navbar";
+
+interface Comment {
+  _id: string;
+  name: string;
+  content: string;
+  createdAt: string;
+}
+
+export default function Blog() {
+  const { id } = useParams<{ id: string }>();
+
+  const [data, setData] = useState<BlogType | null>(null);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [name, setName] = useState("");
+  const [content, setContent] = useState("");
+  const [loading, setLoading] = useState(true);
+
+  const fetchBlogData = async () => {
+    try {
+      const res = await axios.get(`/api/blog/${id}`);
+
+      if (res.data.success) {
+        setData(res.data.blog);
+      } else {
+        toast.error(res.data.message || "Failed to load blog");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || error.message || "Failed to load blog");
+      } else {
+        toast.error("Failed to load blog");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchComments = async () => {
+    try {
+      const res = await axios.get(`/api/blog/${id}/comments`);
+
+      if (res.data.success) {
+        setComments(res.data.comments);
+      } else {
+        toast.error(res.data.message || "Failed to load comments");
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || error.message || "Failed to load comments");
+      } else {
+        toast.error("Failed to load comments");
+      }
+    }
+  };
+
+  const addComment = async (e: FormEvent) => {
+    e.preventDefault();
+
+    try {
+      const res = await axios.post(`/api/blog/${id}/comment`, { name, content });
+
+      if (res.data.success) {
+        toast.success(res.data.message);
+        setName("");
+        setContent("");
+        fetchComments();
+      } else {
+        toast.error(res.data.message);
+      }
+    } catch (error) {
+      if (axios.isAxiosError(error)) {
+        toast.error(error.response?.data?.message || error.message || "Could not submit comment");
+      } else {
+        toast.error("Could not submit comment");
+      }
+    }
+  };
+
+  useEffect(() => {
+    setLoading(true);
+    fetchBlogData();
+    fetchComments();
+  }, [id]);
+
+  if (loading) return <Loader />;
+
+  if (!data)
+    return (
+      <div className="text-center mt-40 text-gray-600">
+        <h2 className="text-3xl font-semibold">Blog Not Found</h2>
+      </div>
+    );
+
+  return (
+    <div className="relative">
+      <img src={assets.gradientBackground} alt="" className="absolute -top-50 -z-1 opacity-50" />
+
+      <Navbar />
+
+      <div className="text-center mt-20 text-gray-600">
+        <p className="text-primary py-4 font-medium">
+          Published on {Moment(data.createdAt).format("MMMM Do YYYY")}
+        </p>
+
+        <h1 className="text-2xl sm:text-5xl font-semibold max-w-2xl mx-auto text-gray-800">
+          {data.title}
+        </h1>
+
+        {data.subtitle && <h2 className="my-5 max-w-lg truncate mx-auto">{data.subtitle}</h2>}
+      </div>
+
+      <div className="mx-5 max-w-5xl md:mx-auto mt-24">
+        <img src={data.image} alt="" className="rounded-3xl mb-5" />
+
+        <div
+          className="rich-text max-w-3xl mx-auto"
+          dangerouslySetInnerHTML={{ __html: data.description }}
+        />
+
+        <div className="mt-14 mb-10 max-w-3xl mx-auto">
+          <p className="font-semibold mb-4">Comments ({comments.length})</p>
+
+          <div className="flex flex-col gap-4">
+            {comments.map((comment) => (
+              <div
+                key={comment._id}
+                className="relative bg-primary/2 border border-primary/5 max-w-xl p-4 rounded text-gray-600"
+              >
+                <div className="flex items-center gap-2 mb-2">
+                  <img src={assets.user_icon} alt="" className="w-6" />
+                  <p className="font-medium">{comment.name}</p>
+                </div>
+
+                <p className="text-sm max-w-md ml-8">{comment.content}</p>
+
+                <div className="absolute right-4 bottom-3 flex items-center gap-2 text-xs">
+                  {Moment(comment.createdAt).fromNow()}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="max-w-3xl mx-auto">
+          <p className="font-semibold mb-4">Add your comment</p>
+
+          <form onSubmit={addComment} className="flex flex-col items-start gap-4 max-w-lg">
+            <input
+              onChange={(e) => setName(e.target.value)}
+              value={name}
+              type="text"
+              placeholder="Name"
+              required
+              className="w-full p-2 border border-gray-300 rounded outline-none"
+            />
+
+            <textarea
+              onChange={(e) => setContent(e.target.value)}
+              value={content}
+              placeholder="Comment"
+              className="w-full p-2 border border-gray-300 rounded outline-none h-48"
+              required
+            />
+
+            <button
+              type="submit"
+              className="bg-primary text-white rounded p-2 px-8 hover:scale-102 transition-all cursor-pointer"
+            >
+              Submit
+            </button>
+          </form>
+        </div>
+
+        <div className="my-24 max-w-3xl mx-auto">
+          <p className="font-semibold my-4">Share this article on social media</p>
+          <div className="flex gap-3">
+            <img src={assets.facebook_icon} width={50} alt="Facebook" />
+            <img src={assets.twitter_icon} width={50} alt="Twitter" />
+            <img src={assets.googleplus_icon} width={50} alt="Google+" />
+          </div>
+        </div>
+      </div>
+
+      <Footer />
+    </div>
+  );
+}

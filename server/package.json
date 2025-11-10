@@ -19,7 +19,7 @@
   ],
   "author": "Vikraman R",
   "engines": {
-    "node": ">=24.8.0"
+    "node": "22.x"
   },
   "license": "ISC",
   "type": "module",

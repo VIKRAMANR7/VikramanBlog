@@ -13,6 +13,11 @@
     "frontend",
     "axios"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/VIKRAMANR7/VikramanBlog"
+  },
+  "homepage": "https://vikraman-blog.vercel.app",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",

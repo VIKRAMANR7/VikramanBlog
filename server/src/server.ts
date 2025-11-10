@@ -27,7 +27,7 @@ try {
 
 app.use(
   cors({
-    origin: process.env.NODE_ENV === "production" ? ["https://vikramanblog.com"] : "*",
+    origin: ["https://vikraman-blog.vercel.app", "http://localhost:5173"],
     credentials: true,
   })
 );

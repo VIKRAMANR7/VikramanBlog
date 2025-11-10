@@ -27,7 +27,22 @@ try {
 
 app.use(
   cors({
-    origin: ["https://vikraman-blog.vercel.app", "http://localhost:5173"],
+    origin: (origin, callback) => {
+      // Allow requests with no origin
+      if (!origin) return callback(null, true);
+
+      // Allowed origins list
+      const allowedOrigins = ["http://localhost:5173", "https://vikraman-blog.vercel.app"];
+
+      // ✅ Allow any Vercel preview subdomain
+      if (origin.endsWith(".vercel.app")) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      return callback(new Error("CORS blocked: Origin not allowed"));
+    },
     credentials: true,
   })
 );

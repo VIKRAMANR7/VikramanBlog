@@ -15,10 +15,7 @@ export const connectDB = async () => {
       throw new Error("MONGODB_URI is not defined in environment variables");
     }
 
-    await mongoose.connect(`${mongoURI}/vikramanblog`, {
-      autoIndex: false,
-      serverSelectionTimeoutMS: 5000,
-    });
+    await mongoose.connect(`${mongoURI}/vikramanblog`);
   } catch (error) {
     console.error(
       "❌ Failed to connect to MongoDB:",

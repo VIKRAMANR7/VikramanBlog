@@ -1,23 +1,20 @@
 import js from "@eslint/js";
-import globals from "globals";
+import tseslint from "typescript-eslint";
 import reactHooks from "eslint-plugin-react-hooks";
-import reactRefresh from "eslint-plugin-react-refresh";
-import tsParser from "@typescript-eslint/parser";
-import tsPlugin from "@typescript-eslint/eslint-plugin";
-import prettierPlugin from "eslint-plugin-prettier";
+import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", "**/*.d.ts"],
+    ignores: ["dist/**", "node_modules/**"],
   },
 
   js.configs.recommended,
+  ...tseslint.configs.recommended,
 
   {
     files: ["src/**/*.{ts,tsx}"],
 
     languageOptions: {
-      parser: tsParser,
       parserOptions: {
         ecmaVersion: "latest",
         sourceType: "module",
@@ -30,29 +27,21 @@ export default [
     },
 
     plugins: {
-      "@typescript-eslint": tsPlugin,
       "react-hooks": reactHooks,
-      "react-refresh": reactRefresh,
-      prettier: prettierPlugin,
     },
 
     rules: {
-      "@typescript-eslint/no-unused-vars": ["warn", { argsIgnorePattern: "^_" }],
-      // Keep TS rules simple
+      // TS
+      "@typescript-eslint/no-unused-vars": "warn",
       "@typescript-eslint/consistent-type-imports": "off",
+      "@typescript-eslint/no-explicit-any": "off",
 
+      // Hooks
       "react-hooks/rules-of-hooks": "error",
       "react-hooks/exhaustive-deps": "warn",
 
-      // React Refresh (Vite HMR protection)
-      "react-refresh/only-export-components": "warn",
-
-      "no-console": "off", // allowed for client logging
-      "no-unused-vars": "off", // handled by TS
-
-      "no-undef": "off",
-
-      "prettier/prettier": "error",
+      // JS cleanup
+      "no-unused-vars": "off",
     },
   },
 ];

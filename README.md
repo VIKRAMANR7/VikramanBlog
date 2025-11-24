@@ -79,33 +79,33 @@ It includes:
 - Express.js 5
 - TypeScript
 - MongoDB + Mongoose
-- ImageKit (image storage + optimization)
+- ImageKit
 - GROQ (AI generation)
-- Multer (file uploads)
+- Multer
 - JWT authentication
 
 ---
 
 ## 🏗️ Architecture
 
-```
-┌──────────────────────────────────────────────────────────────┐
-│                         CLIENT (Frontend)                     │
-│   React + TS + Vite + TailwindCSS + Axios + Context API       │
-└───────────────────────┬────────────────────────────────────────┘
-                        │  HTTPS (REST API)
-                        │
-┌────────────────────────▼──────────────────────────────────────┐
-│                        SERVER (Express API)                   │
-│   Auth API   Blog API     Comment API     AI Generation API   │
-│   JWT Auth   CRUD Ops     Approval Flow   GROQ Integration    │
-└───────────────┬──────────────┬──────────────┬─────────────────┘
-                │              │              │
-      ┌─────────▼───┐  ┌───────▼────────┐  ┌─────────▼────────┐
-      │  MongoDB     │  │ ImageKit CDN   │  │ GROQ AI Engine   │
-      │ Blogs        │  │ Optimize/Store │  │ Generate Content │
-      │ Comments     │  │ WebP/Resizing  │  │ Llama Models     │
-      └──────────────┘  └───────────────┘  └───────────────────┘
+```mermaid
+flowchart TD
+
+A[Client - React + TS + Vite] -- Axios HTTPS --> B[Backend - Express + TS]
+
+B --> C[MongoDB - Blogs, Comments]
+B --> D[ImageKit CDN - Image Optimization]
+B --> E[GROQ AI Engine - Llama 3.3]
+
+subgraph Frontend
+A
+end
+
+subgraph Backend Services
+B --> C
+B --> D
+B --> E
+end
 ```
 
 ---
@@ -114,101 +114,106 @@ It includes:
 
 ### **1. Blog Creation (With Image + AI)**
 
-```
+```mermaid
 sequenceDiagram
     autonumber
     User->>Frontend: Opens /admin/addBlog
-    User->>Frontend: Selects image + fills title, subtitle, category, description
+    User->>Frontend: Uploads image + fills fields
     Frontend->>Backend: POST /api/blog (multipart/form-data)
-    Backend->>Auth Middleware: Validate JWT
-    Auth Middleware-->>Backend: Allow request
+    Backend->>Auth: Validate JWT
+    Auth-->>Backend: OK
 
     Backend->>Multer: Parse uploaded image
-    Multer-->>Backend: temp file buffer
+    Multer-->>Backend: Temp file buffer
 
     Backend->>ImageKit: Upload image
-    ImageKit-->>Backend: Return optimized URL
+    ImageKit-->>Backend: Return URL
 
-    Backend->>MongoDB: Create new Blog document
-    MongoDB-->>Backend: Blog created
+    Backend->>MongoDB: Insert Blog document
+    MongoDB-->>Backend: Success
 
-    Backend-->>Frontend: 201 Created (blog + image URL)
-    Frontend-->>User: Success toast + redirect
+    Backend-->>Frontend: Blog Created (201)
+    Frontend-->>User: Success message + redirect
 ```
+
+---
 
 ### **2. AI Content Generation**
 
-```
+```mermaid
 sequenceDiagram
     autonumber
-    Admin->>Frontend: Enters topic prompt and clicks "Generate"
-    Frontend->>Backend: POST /api/blog/generate { prompt }
-    Backend->>Auth Middleware: Validate JWT
-    Auth Middleware-->>Backend: Allow request
+    Admin->>Frontend: Enters prompt
+    Frontend->>Backend: POST /api/blog/generate
+    Backend->>Auth: Validate JWT
+    Auth-->>Backend: OK
 
-    Backend->>GROQ API: Create chat completion request
-    GROQ API-->>Backend: Return AI-generated Markdown
+    Backend->>GROQ: Send prompt
+    GROQ-->>Backend: Return Markdown
 
-    Backend->>Utils (fixMarkdown): Clean + format output
-    Utils-->>Backend: Return cleaned markdown
+    Backend->>Utils: Clean markdown
+    Utils-->>Backend: Cleaned text
 
-    Backend-->>Frontend: { content: markdown }
-    Frontend-->>Admin: Populate editor with AI output
+    Backend-->>Frontend: AI content
+    Frontend-->>Admin: Prefill editor
 ```
+
+---
 
 ### **3. Comment Lifecycle**
 
-```
+```mermaid
 sequenceDiagram
     autonumber
-    User->>Frontend: Submits comment on blog page
-    Frontend->>Backend: POST /api/blog/:id/comment { name, content }
-    Backend->>MongoDB: Insert comment (isApproved = false)
-    MongoDB-->>Backend: Comment saved
-    Backend-->>Frontend: Comment pending approval
+    User->>Frontend: Writes comment
+    Frontend->>Backend: POST /api/blog/:id/comment
+    Backend->>MongoDB: Save comment (isApproved=false)
+    MongoDB-->>Backend: Saved
+    Backend-->>Frontend: Pending approval
 
-    Admin->>Frontend: Opens admin/comments
+    Admin->>Frontend: Opens comments list
     Frontend->>Backend: GET /api/admin/comments
-    Backend->>Auth Middleware: Validate JWT
-    Auth Middleware-->>Backend: Allowed
     Backend->>MongoDB: Fetch all comments
-    MongoDB-->>Backend: Comments list
-    Backend-->>Frontend: List returned
+    MongoDB-->>Backend: List
+    Backend-->>Frontend: Comments
 
-    Admin->>Frontend: Clicks Approve
+    Admin->>Frontend: Approves comment
     Frontend->>Backend: PATCH /api/admin/comment/:id/approve
-    Backend->>MongoDB: Update isApproved = true
+    Backend->>MongoDB: Update comment
     MongoDB-->>Backend: Updated
     Backend-->>Frontend: Success
 ```
 
-### **4. Authentication (JWT)**
+---
 
-```
+### **4. Authentication (JWT Login)**
+
+```mermaid
 sequenceDiagram
     autonumber
-    Admin->>Frontend: Submits login form
+    Admin->>Frontend: Enters credentials
     Frontend->>Backend: POST /api/admin/login
-    Backend->>MongoDB: Find admin
-    MongoDB-->>Backend: Return match
-    Backend->>JWT: Sign token with ADMIN_EMAIL + role
+    Backend->>MongoDB: Validate admin
+    MongoDB-->>Backend: Admin found
+    Backend->>JWT: Sign token
     JWT-->>Backend: Token
     Backend-->>Frontend: { token }
     Frontend->>LocalStorage: Save token
-    Frontend-->>Admin: Redirect to /admin
 ```
 
-### **5. HomePage**
+---
 
-```
+### **5. Home Page**
+
+```mermaid
 sequenceDiagram
     autonumber
-    User->>Frontend: Visits homepage
+    User->>Frontend: Visit homepage
     Frontend->>Backend: GET /api/blog
     Backend->>MongoDB: Fetch all published blogs
-    MongoDB-->>Backend: List of blogs
-    Backend-->>Frontend: JSON blogs array
-    Frontend->>User: Render BlogList + BlogCard
+    MongoDB-->>Backend: Blogs
+    Backend-->>Frontend: Blogs JSON
+    Frontend->>User: Render blog cards
 ```
 
 ---
@@ -220,12 +225,12 @@ vikraman-blog/
 ├── client/
 │   ├── public/
 │   │   └── screenshots/
-│   │        ├── home.png
-│   │        ├── dashboard.png
-│   │        ├── addblog.png
-│   │        └── listblog.png
+│   │       ├── home.png
+│   │       ├── dashboard.png
+│   │       ├── addblog.png
+│   │       └── listblog.png
 │   ├── src/
-│   │   ├── api/axiosInstance.ts
+│   │   ├── api/
 │   │   ├── assets/
 │   │   ├── components/
 │   │   ├── context/
@@ -298,9 +303,7 @@ VITE_BASE_URL=http://localhost:3000
 
 ## 🚀 Getting Started
 
-### Install Dependencies
-
-#### Backend
+### Backend
 
 ```
 cd server
@@ -308,7 +311,7 @@ pnpm install
 pnpm dev
 ```
 
-#### Frontend
+### Frontend
 
 ```
 cd client
@@ -320,28 +323,17 @@ pnpm dev
 
 ## 📡 API Documentation (Summary)
 
-### Public Routes
-
-| Method | Endpoint               | Description         |
-| ------ | ---------------------- | ------------------- |
-| GET    | /api/blog              | Get published blogs |
-| GET    | /api/blog/:id          | Get blog            |
-| POST   | /api/blog/:id/comment  | Add comment         |
-| GET    | /api/blog/:id/comments | Get comments        |
-
-### Admin Routes
-
-| Method | Endpoint                       | Description     |
-| ------ | ------------------------------ | --------------- |
-| POST   | /api/admin/login               | Login           |
-| GET    | /api/admin/dashboard           | Dashboard stats |
-| GET    | /api/admin/blogs               | All blogs       |
-| GET    | /api/admin/comments            | All comments    |
-| POST   | /api/blog                      | Create blog     |
-| PATCH  | /api/blog/:id/publish          | Publish toggle  |
-| DELETE | /api/blog/:id                  | Delete          |
-| PATCH  | /api/admin/comment/:id/approve | Approve         |
-| DELETE | /api/admin/comment/:id         | Delete          |
+| Method | Endpoint                       | Description       |
+| ------ | ------------------------------ | ----------------- |
+| GET    | /api/blog                      | Fetch blogs       |
+| GET    | /api/blog/:id                  | Fetch single blog |
+| POST   | /api/blog                      | Create blog       |
+| DELETE | /api/blog/:id                  | Delete blog       |
+| POST   | /api/blog/:id/comment          | Add comment       |
+| PATCH  | /api/blog/:id/publish          | Toggle publish    |
+| POST   | /api/blog/generate             | AI content        |
+| GET    | /api/admin/comments            | Admin comments    |
+| PATCH  | /api/admin/comment/:id/approve | Approve comment   |
 
 ---
 
@@ -349,13 +341,13 @@ pnpm dev
 
 ### Frontend (Vercel)
 
-- Build command: `pnpm build`
-- Output: `dist/`
+Build → `pnpm build`
+Output → `dist`
 
 ### Backend (Vercel)
 
-- Build: `pnpm build`
-- Output: `dist/`
+Build → `pnpm build`
+Output → `dist`
 
 ---
 

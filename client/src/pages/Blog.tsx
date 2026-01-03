@@ -2,13 +2,14 @@ import { FormEvent, useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import Moment from "moment";
 import toast from "react-hot-toast";
-import { api } from "../api/axiosInstance";
-import { Blog as BlogType } from "../types/blog";
-import { assets } from "../assets/assets";
 
-import Navbar from "../components/Navbar";
+import { api } from "../api/axiosInstance";
+import { assets } from "../assets/assets";
+import type { Blog as BlogType } from "../types/blog";
+
 import Footer from "../components/Footer";
 import Loader from "../components/Loader";
+import Navbar from "../components/Navbar";
 
 interface Comment {
   _id: string;
@@ -29,7 +30,7 @@ export default function Blog() {
   useEffect(() => {
     if (!id) return;
 
-    const fetchData = async () => {
+    async function fetchData() {
       setLoading(true);
 
       try {
@@ -48,12 +49,12 @@ export default function Blog() {
       } finally {
         setLoading(false);
       }
-    };
+    }
 
     fetchData();
   }, [id]);
 
-  const addComment = async (e: FormEvent) => {
+  async function addComment(e: FormEvent) {
     e.preventDefault();
 
     try {
@@ -64,7 +65,6 @@ export default function Blog() {
         setName("");
         setContent("");
 
-        // refresh comments
         const commentRes = await api.get(`/api/blog/${id}/comments`);
         if (commentRes.data.success) setComments(commentRes.data.comments);
       } else {
@@ -73,7 +73,7 @@ export default function Blog() {
     } catch {
       toast.error("Could not submit comment.");
     }
-  };
+  }
 
   if (loading) return <Loader />;
 
@@ -111,7 +111,6 @@ export default function Blog() {
           dangerouslySetInnerHTML={{ __html: blog.description }}
         />
 
-        {/* COMMENTS */}
         <div className="mt-14 mb-10 max-w-3xl mx-auto">
           <p className="font-semibold mb-4">Comments ({comments.length})</p>
 
@@ -136,7 +135,6 @@ export default function Blog() {
           </div>
         </div>
 
-        {/* ADD COMMENT */}
         <div className="max-w-3xl mx-auto">
           <p className="font-semibold mb-4">Add your comment</p>
 
@@ -167,7 +165,6 @@ export default function Blog() {
           </form>
         </div>
 
-        {/* SOCIAL SHARE */}
         <div className="my-24 max-w-3xl mx-auto">
           <p className="font-semibold my-4">Share this article on social media</p>
           <div className="flex gap-3">

@@ -1,9 +1,9 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 
 import { api } from "../../api/axiosInstance";
-import type { Blog } from "../../types/blog";
 import { assets } from "../../assets/assets";
+import type { Blog } from "../../types/blog";
 import BlogTableItem from "../../components/admin/BlogTableItem";
 
 interface DashboardData {
@@ -13,16 +13,18 @@ interface DashboardData {
   recentBlogs: Blog[];
 }
 
+const INITIAL_DATA: DashboardData = {
+  blogs: 0,
+  comments: 0,
+  drafts: 0,
+  recentBlogs: [],
+};
+
 export default function Dashboard() {
-  const [data, setData] = useState<DashboardData>({
-    blogs: 0,
-    comments: 0,
-    drafts: 0,
-    recentBlogs: [],
-  });
+  const [data, setData] = useState(INITIAL_DATA);
   const [loading, setLoading] = useState(true);
 
-  const fetchDashboard = useCallback(async () => {
+  async function fetchDashboard() {
     try {
       setLoading(true);
       const res = await api.get("/api/admin/dashboard");
@@ -37,11 +39,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }
 
   useEffect(() => {
     fetchDashboard();
-  }, [fetchDashboard]);
+  }, []);
 
   if (loading) {
     return (

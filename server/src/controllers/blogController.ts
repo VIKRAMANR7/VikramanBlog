@@ -1,6 +1,7 @@
-import { Request, Response } from "express";
+import type { Request, Response } from "express";
 import fs from "fs";
 import mongoose from "mongoose";
+
 import groq from "../configs/groq.js";
 import imageKit from "../configs/imageKit.js";
 import Blog from "../models/Blog.js";
@@ -9,29 +10,23 @@ import { sendError } from "../utils/sendError.js";
 import { buildBlogPrompt } from "../utils/buildBlogPrompt.js";
 import { fixMarkdown } from "../utils/fixMarkdown.js";
 
-export const addBlog = async (req: Request, res: Response) => {
+export async function addBlog(req: Request, res: Response) {
   try {
     if (!req.body.blog) {
-      res.status(400).json({ success: false, message: "Blog data missing" });
-      return;
+      return res.status(400).json({ success: false, message: "Blog data missing" });
     }
 
     const blogData = JSON.parse(req.body.blog);
     const { title, subtitle = "", description, category, isPublished = true } = blogData;
 
     if (!title || !description || !category) {
-      res.status(400).json({
-        success: false,
-        message: "Missing required fields (title, description, category)",
-      });
-      return;
+      return res.status(400).json({ success: false, message: "Missing required fields" });
     }
 
     const imageFile = req.file;
 
     if (!imageFile) {
-      res.status(400).json({ success: false, message: "Image file is required" });
-      return;
+      return res.status(400).json({ success: false, message: "Image file is required" });
     }
 
     const fileBuffer = fs.readFileSync(imageFile.path);
@@ -58,160 +53,145 @@ export const addBlog = async (req: Request, res: Response) => {
       isPublished,
     });
 
-    res.json({ success: true, message: "Blog added successfully" });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, message: "Blog added successfully" });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const getAllBlogs = async (_req: Request, res: Response) => {
+export async function getAllBlogs(_req: Request, res: Response) {
   try {
     const blogs = await Blog.find({ isPublished: true }).sort({ createdAt: -1 });
-    res.json({ success: true, blogs });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, blogs });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const getBlogById = async (req: Request, res: Response) => {
+export async function getBlogById(req: Request, res: Response) {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      res.status(400).json({ success: false, message: "Invalid blog ID format" });
-      return;
+      return res.status(400).json({ success: false, message: "Invalid blog ID" });
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      res.status(404).json({ success: false, message: "Blog not found" });
-      return;
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
-    res.json({ success: true, blog });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, blog });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const deleteBlogById = async (req: Request, res: Response) => {
+export async function deleteBlogById(req: Request, res: Response) {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      res.status(400).json({ success: false, message: "Invalid blog ID format" });
-      return;
+      return res.status(400).json({ success: false, message: "Invalid blog ID" });
     }
 
     const deleted = await Blog.findByIdAndDelete(blogId);
 
     if (!deleted) {
-      res.status(404).json({ success: false, message: "Blog not found" });
-      return;
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
     await Comment.deleteMany({ blog: blogId });
 
-    res.json({ success: true, message: "Blog deleted successfully" });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, message: "Blog deleted successfully" });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const togglePublish = async (req: Request, res: Response) => {
+export async function togglePublish(req: Request, res: Response) {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      res.status(400).json({ success: false, message: "Invalid blog ID format" });
-      return;
+      return res.status(400).json({ success: false, message: "Invalid blog ID" });
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      res.status(404).json({ success: false, message: "Blog not found" });
-      return;
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
     blog.isPublished = !blog.isPublished;
     await blog.save();
 
-    res.json({
+    return res.json({
       success: true,
       message: "Blog status updated",
       isPublished: blog.isPublished,
     });
-  } catch (error) {
-    sendError(res, error);
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const addComment = async (req: Request, res: Response) => {
+export async function addComment(req: Request, res: Response) {
   try {
     const { blogId } = req.params;
     const { name, content } = req.body;
 
     if (!name || !content) {
-      res.status(400).json({ success: false, message: "Name and content are required" });
-      return;
+      return res.status(400).json({ success: false, message: "Name and content are required" });
     }
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      res.status(400).json({ success: false, message: "Invalid Blog ID format" });
-      return;
+      return res.status(400).json({ success: false, message: "Invalid blog ID" });
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      res.status(404).json({ success: false, message: "Blog not found" });
-      return;
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
     await Comment.create({ blog: blogId, name, content });
 
-    res.status(201).json({ success: true, message: "Comment added for review" });
-  } catch (error) {
-    sendError(res, error);
+    return res.status(201).json({ success: true, message: "Comment added for review" });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const getBlogComments = async (req: Request, res: Response) => {
+export async function getBlogComments(req: Request, res: Response) {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      res.status(400).json({ success: false, message: "Invalid blog ID format" });
-      return;
+      return res.status(400).json({ success: false, message: "Invalid blog ID" });
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      res.status(404).json({ success: false, message: "Blog not found" });
-      return;
+      return res.status(404).json({ success: false, message: "Blog not found" });
     }
 
-    const comments = await Comment.find({
-      blog: blogId,
-      isApproved: true,
-    }).sort({ createdAt: -1 });
+    const comments = await Comment.find({ blog: blogId, isApproved: true }).sort({ createdAt: -1 });
 
-    res.status(200).json({ success: true, comments });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, comments });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}
 
-export const generateContent = async (req: Request, res: Response) => {
+export async function generateContent(req: Request, res: Response) {
   try {
     const { prompt } = req.body;
 
     if (!prompt?.trim()) {
-      res.status(400).json({ success: false, message: "Prompt is required" });
-      return;
+      return res.status(400).json({ success: false, message: "Prompt is required" });
     }
 
     const { system, user } = buildBlogPrompt(prompt);
@@ -229,14 +209,13 @@ export const generateContent = async (req: Request, res: Response) => {
     const markdown = completion?.choices?.[0]?.message?.content ?? "";
 
     if (!markdown) {
-      res.status(500).json({ success: false, message: "AI did not return content" });
-      return;
+      return res.status(500).json({ success: false, message: "AI did not return content" });
     }
 
     const fixedContent = fixMarkdown(prompt, markdown);
 
-    res.status(200).json({ success: true, content: fixedContent });
-  } catch (error) {
-    sendError(res, error);
+    return res.json({ success: true, content: fixedContent });
+  } catch (err) {
+    return sendError(res, err);
   }
-};
+}

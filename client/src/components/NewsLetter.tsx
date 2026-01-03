@@ -1,12 +1,12 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 
 export default function NewsLetter() {
   const [email, setEmail] = useState("");
 
-  const handleSubmit = (e: FormEvent) => {
+  function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setEmail("");
-  };
+  }
 
   return (
     <section className="flex flex-col items-center justify-center text-center space-y-2 my-32">

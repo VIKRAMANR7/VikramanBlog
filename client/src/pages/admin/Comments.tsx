@@ -1,19 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import axios from "axios";
+
 import { api } from "../../api/axiosInstance";
+import type { Comment } from "../../types/comment";
 import CommentTableItem from "../../components/admin/CommentTableItem";
-import { Comment } from "../../types/comment";
 
 export default function Comments() {
   const [comments, setComments] = useState<Comment[]>([]);
   const [filter, setFilter] = useState<"Approved" | "Not Approved">("Not Approved");
   const [loading, setLoading] = useState(true);
 
-  const fetchComments = async () => {
+  async function fetchComments() {
     try {
       setLoading(true);
-
       const { data } = await api.get("/api/admin/comments");
 
       if (data.success) {
@@ -21,30 +20,24 @@ export default function Comments() {
       } else {
         toast.error(data.message || "Failed to load comments");
       }
-    } catch (error) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || error.message);
-      } else {
-        toast.error("Failed to load comments");
-      }
+    } catch {
+      toast.error("Failed to load comments");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     fetchComments();
   }, []);
 
-  const approvedCount = useMemo(() => comments.filter((c) => c.isApproved).length, [comments]);
+  const approvedCount = comments.filter((c) => c.isApproved).length;
+  const pendingCount = comments.filter((c) => !c.isApproved).length;
 
-  const pendingCount = useMemo(() => comments.filter((c) => !c.isApproved).length, [comments]);
-
-  const filteredComments = useMemo(() => {
-    return filter === "Approved"
+  const filteredComments =
+    filter === "Approved"
       ? comments.filter((c) => c.isApproved)
       : comments.filter((c) => !c.isApproved);
-  }, [comments, filter]);
 
   return (
     <div className="flex-1 pt-5 px-5 sm:pt-12 sm:pl-16 bg-blue-50/50">
@@ -77,7 +70,7 @@ export default function Comments() {
       <div className="relative h-4/5 max-w-3xl overflow-x-auto mt-4 bg-white shadow rounded-lg">
         {loading ? (
           <div className="flex items-center justify-center py-16 text-gray-500">
-            Loading comments…
+            Loading comments...
           </div>
         ) : filteredComments.length === 0 ? (
           <div className="flex items-center justify-center py-16 text-gray-500">

@@ -1,6 +1,7 @@
-import { FormEvent, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+
 import { useAppContext } from "../../context/useAppContext";
 import { api } from "../../api/axiosInstance";
 
@@ -12,7 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
 
     try {
@@ -22,7 +23,7 @@ export default function Login() {
 
       if (data.success) {
         saveToken(data.token);
-        toast.success("Login successful!");
+        toast.success("Login successful");
         navigate("/admin");
       } else {
         toast.error(data.message || "Invalid credentials");
@@ -32,7 +33,7 @@ export default function Login() {
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   return (
     <div className="flex items-center justify-center h-screen bg-blue-50/20">
@@ -80,7 +81,7 @@ export default function Login() {
             disabled={loading}
             className="w-full py-2 bg-primary text-white font-medium rounded hover:bg-primary/90 transition disabled:opacity-60 cursor-pointer"
           >
-            {loading ? "Logging in…" : "Login"}
+            {loading ? "Logging in..." : "Login"}
           </button>
         </form>
       </div>

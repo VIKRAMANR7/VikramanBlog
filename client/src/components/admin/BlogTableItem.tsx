@@ -1,8 +1,9 @@
 import { useState } from "react";
 import toast from "react-hot-toast";
 import { useNavigate } from "react-router-dom";
+
 import { api } from "../../api/axiosInstance";
-import { Blog } from "../../types/blog";
+import type { Blog } from "../../types/blog";
 import { assets } from "../../assets/assets";
 
 interface BlogTableItemProps {
@@ -19,11 +20,11 @@ export default function BlogTableItem({ blog, fetchBlogs, index }: BlogTableItem
 
   const formattedDate = createdAt ? new Date(createdAt).toLocaleDateString() : "";
 
-  const viewBlog = () => {
+  function viewBlog() {
     navigate(`/blog/${_id}`);
-  };
+  }
 
-  const deleteBlog = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  async function deleteBlog(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
 
     if (!window.confirm("Are you sure you want to delete this blog?")) return;
@@ -44,9 +45,9 @@ export default function BlogTableItem({ blog, fetchBlogs, index }: BlogTableItem
     } finally {
       setWorking(false);
     }
-  };
+  }
 
-  const togglePublish = async (e: React.MouseEvent<HTMLButtonElement>) => {
+  async function togglePublish(e: React.MouseEvent<HTMLButtonElement>) {
     e.stopPropagation();
 
     try {
@@ -65,7 +66,7 @@ export default function BlogTableItem({ blog, fetchBlogs, index }: BlogTableItem
     } finally {
       setWorking(false);
     }
-  };
+  }
 
   return (
     <tr onClick={viewBlog} className="border-b border-gray-200 hover:bg-gray-50 cursor-pointer">

@@ -1,6 +1,6 @@
-import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Blog } from "../types/blog";
+
+import type { Blog } from "../types/blog";
 
 interface BlogCardProps {
   blog: Blog;
@@ -10,9 +10,9 @@ export default function BlogCard({ blog }: BlogCardProps) {
   const navigate = useNavigate();
   const { title, subtitle, category, image, _id } = blog;
 
-  const goToBlog = useCallback(() => {
+  function goToBlog() {
     navigate(`/blog/${_id}`);
-  }, [navigate, _id]);
+  }
 
   return (
     <div

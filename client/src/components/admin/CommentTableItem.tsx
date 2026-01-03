@@ -1,8 +1,8 @@
-import axios from "axios";
-import { api } from "../../api/axiosInstance";
 import toast from "react-hot-toast";
+
+import { api } from "../../api/axiosInstance";
 import { assets } from "../../assets/assets";
-import { Comment } from "../../types/comment";
+import type { Comment } from "../../types/comment";
 
 interface CommentTableItemProps {
   comment: Comment;
@@ -12,44 +12,38 @@ interface CommentTableItemProps {
 export default function CommentTableItem({ comment, fetchComments }: CommentTableItemProps) {
   const { blog, createdAt, _id, isApproved, name, content } = comment;
 
-  const approveComment = async () => {
+  async function approveComment() {
     try {
       const { data } = await api.patch(`/api/admin/comment/${_id}/approve`);
+
       if (data.success) {
         toast.success(data.message || "Comment approved");
         await fetchComments();
       } else {
         toast.error(data.message || "Unable to approve comment");
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || error.message);
-      } else {
-        toast.error("Failed to approve comment");
-      }
+    } catch {
+      toast.error("Failed to approve comment");
     }
-  };
+  }
 
-  const deleteComment = async () => {
+  async function deleteComment() {
     const confirmDelete = window.confirm("Are you sure you want to delete this comment?");
     if (!confirmDelete) return;
 
     try {
       const { data } = await api.delete(`/api/admin/comment/${_id}`);
+
       if (data.success) {
         toast.success(data.message || "Comment deleted");
         await fetchComments();
       } else {
         toast.error(data.message || "Unable to delete comment");
       }
-    } catch (error: unknown) {
-      if (axios.isAxiosError(error)) {
-        toast.error(error.response?.data?.message || error.message);
-      } else {
-        toast.error("Failed to delete comment");
-      }
+    } catch {
+      toast.error("Failed to delete comment");
     }
-  };
+  }
 
   return (
     <tr className="border-y border-gray-300">

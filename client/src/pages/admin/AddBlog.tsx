@@ -1,6 +1,7 @@
-import { ChangeEvent, FormEvent, useState } from "react";
+import { useState } from "react";
 import toast from "react-hot-toast";
 import { parse } from "marked";
+
 import { api } from "../../api/axiosInstance";
 import { assets, blogCategories } from "../../assets/assets";
 
@@ -15,36 +16,46 @@ export default function AddBlog() {
   const [category, setCategory] = useState("");
   const [isPublished, setIsPublished] = useState(false);
 
-  const generateContent = async () => {
+  async function generateContent() {
     if (!title.trim()) {
-      return toast.error("Please enter a title first");
+      toast.error("Please enter a title first");
+      return;
     }
 
     try {
       setIsGenerating(true);
 
-      const res = await api.post("/api/blog/generate", {
-        prompt: title,
-      });
+      const res = await api.post("/api/blog/generate", { prompt: title });
 
-      if (!res.data.success) {
-        return toast.error(res.data.message);
+      if (res.data.success) {
+        setDescription(res.data.content || "");
+      } else {
+        toast.error(res.data.message);
       }
-
-      setDescription(res.data.content || "");
-    } catch (err) {
+    } catch {
       toast.error("Failed to generate content");
     } finally {
       setIsGenerating(false);
     }
-  };
+  }
 
-  const onSubmitHandler = async (e: FormEvent) => {
+  async function onSubmitHandler(e: React.FormEvent) {
     e.preventDefault();
 
-    if (!image) return toast.error("Please upload an image");
-    if (!description.trim()) return toast.error("Blog description cannot be empty");
-    if (!category) return toast.error("Please select a category");
+    if (!image) {
+      toast.error("Please upload an image");
+      return;
+    }
+
+    if (!description.trim()) {
+      toast.error("Blog description cannot be empty");
+      return;
+    }
+
+    if (!category) {
+      toast.error("Please select a category");
+      return;
+    }
 
     try {
       setIsAdding(true);
@@ -64,36 +75,32 @@ export default function AddBlog() {
       formData.append("blog", JSON.stringify(blog));
 
       const res = await api.post("/api/blog", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+        headers: { "Content-Type": "multipart/form-data" },
       });
 
-      if (!res.data.success) {
-        return toast.error(res.data.message);
+      if (res.data.success) {
+        toast.success("Blog added successfully");
+        setTitle("");
+        setSubtitle("");
+        setDescription("");
+        setCategory("");
+        setIsPublished(false);
+        setImage(null);
+      } else {
+        toast.error(res.data.message);
       }
-
-      toast.success("Blog added successfully ✅");
-
-      // Reset form
-      setTitle("");
-      setSubtitle("");
-      setDescription("");
-      setCategory("");
-      setIsPublished(false);
-      setImage(null);
     } catch {
       toast.error("Failed to add blog");
     } finally {
       setIsAdding(false);
     }
-  };
+  }
 
-  const handleImageChange = (e: ChangeEvent<HTMLInputElement>) => {
+  function handleImageChange(e: React.ChangeEvent<HTMLInputElement>) {
     if (e.target.files && e.target.files[0]) {
       setImage(e.target.files[0]);
     }
-  };
+  }
 
   return (
     <form
@@ -167,7 +174,6 @@ export default function AddBlog() {
           className="mt-2 px-3 py-2 border border-gray-300 rounded outline-none"
         >
           <option value="">Select a category</option>
-
           {blogCategories
             .filter((c) => c !== "All")
             .map((c) => (

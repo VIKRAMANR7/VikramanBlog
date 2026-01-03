@@ -1,21 +1,22 @@
-import { FormEvent, useRef } from "react";
+import { useRef } from "react";
+
 import { useAppContext } from "../context/useAppContext";
 import { assets } from "../assets/assets";
 
 export default function Header() {
   const { setInput, input } = useAppContext();
-  const inputRef = useRef<HTMLInputElement | null>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const onSubmitHandler = (e: FormEvent<HTMLFormElement>) => {
+  function onSubmitHandler(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const value = inputRef.current?.value ?? "";
     setInput(value);
-  };
+  }
 
-  const onClear = () => {
+  function onClear() {
     setInput("");
     if (inputRef.current) inputRef.current.value = "";
-  };
+  }
 
   return (
     <section className="mx-8 sm:mx-16 xl:mx-24 relative">

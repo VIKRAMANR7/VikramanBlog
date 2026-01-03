@@ -1,31 +1,24 @@
 import { motion } from "motion/react";
-import { useMemo, useState, useCallback } from "react";
+import { useState } from "react";
+
 import { useAppContext } from "../context/useAppContext";
 import { blogCategories } from "../assets/assets";
 import BlogCard from "./BlogCard";
 
 export default function BlogList() {
-  const [menu, setMenu] = useState<string>("All");
+  const [menu, setMenu] = useState("All");
   const { blogs, input } = useAppContext();
 
-  const onSelectCategory = useCallback((cat: string) => {
-    setMenu(cat);
-  }, []);
+  const filteredBlogs = input?.trim()
+    ? blogs.filter(
+        (blog) =>
+          blog.title.toLowerCase().includes(input.toLowerCase()) ||
+          blog.category.toLowerCase().includes(input.toLowerCase())
+      )
+    : blogs;
 
-  const filteredBlogs = useMemo(() => {
-    if (!input?.trim()) return blogs;
-
-    const search = input.toLowerCase();
-    return blogs.filter(
-      (blog) =>
-        blog.title.toLowerCase().includes(search) || blog.category.toLowerCase().includes(search)
-    );
-  }, [blogs, input]);
-
-  const displayed = useMemo(
-    () => filteredBlogs.filter((b) => (menu === "All" ? true : b.category === menu)),
-    [filteredBlogs, menu]
-  );
+  const displayed =
+    menu === "All" ? filteredBlogs : filteredBlogs.filter((b) => b.category === menu);
 
   return (
     <section>
@@ -35,7 +28,7 @@ export default function BlogList() {
           return (
             <div key={category} className="relative">
               <button
-                onClick={() => onSelectCategory(category)}
+                onClick={() => setMenu(category)}
                 className={`cursor-pointer text-gray-500 ${isActive ? "text-white px-4 pt-0.5" : ""}`}
               >
                 {category}

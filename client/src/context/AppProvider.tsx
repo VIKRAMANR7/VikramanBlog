@@ -1,51 +1,40 @@
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
 import { api, setAuthToken } from "../api/axiosInstance";
-import { Blog } from "../types/blog";
+import type { Blog } from "../types/blog";
 import { AppContext } from "./AppContext";
 
-export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+interface AppProviderProps {
+  children: React.ReactNode;
+}
+
+export function AppProvider({ children }: AppProviderProps) {
   const [token, setToken] = useState<string | null>(() => {
-    try {
-      return localStorage.getItem("token");
-    } catch {
-      return null;
-    }
+    return localStorage.getItem("token");
   });
 
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [input, setInput] = useState("");
 
   const saveToken = useCallback((value: string | null) => {
-    try {
-      if (!value) {
-        localStorage.removeItem("token");
-        setToken(null);
-        setAuthToken(null);
-        return;
-      }
-
-      localStorage.setItem("token", value);
-      setToken(value);
-      setAuthToken(value);
-    } catch {
-      toast.error("Unable to persist session.");
+    if (!value) {
+      localStorage.removeItem("token");
+      setToken(null);
+      setAuthToken(null);
+      return;
     }
+
+    localStorage.setItem("token", value);
+    setToken(value);
+    setAuthToken(value);
   }, []);
 
   const handleLogout = useCallback(() => {
-    try {
-      localStorage.removeItem("token");
-    } catch {
-      // ignore
-    }
+    localStorage.removeItem("token");
     setToken(null);
     setAuthToken(null);
   }, []);
-
-  useEffect(() => {
-    setAuthToken(token);
-  }, [token]);
 
   const fetchBlogs = useCallback(async () => {
     try {
@@ -54,12 +43,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       if (data.success) {
         setBlogs(data.blogs);
       } else {
-        toast.error("Failed to load blogs.");
+        toast.error("Failed to load blogs");
       }
     } catch {
-      toast.error("Failed to load blogs.");
+      toast.error("Failed to load blogs");
     }
   }, []);
+
+  useEffect(() => {
+    setAuthToken(token);
+  }, [token]);
 
   useEffect(() => {
     fetchBlogs();
@@ -68,19 +61,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     const interceptor = api.interceptors.response.use(
       (res) => res,
-      (error) => {
-        const message: string = error?.response?.data?.message?.toLowerCase() ?? "";
-
-        if (error.response?.status === 401) {
-          if (message.includes("expired")) {
-            toast.error("Session expired. Please log in again.");
-          } else {
-            toast.error("Invalid session. Please log in again.");
-          }
+      (err) => {
+        if (err.response?.status === 401) {
+          toast.error("Session expired. Please log in again.");
           handleLogout();
         }
-
-        return Promise.reject(error);
+        return Promise.reject(err);
       }
     );
 
@@ -89,19 +75,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     };
   }, [handleLogout]);
 
-  const value = useMemo(
-    () => ({
-      token,
-      saveToken,
-      handleLogout,
-      blogs,
-      setBlogs,
-      input,
-      setInput,
-      fetchBlogs,
-    }),
-    [token, saveToken, handleLogout, blogs, input, fetchBlogs]
-  );
+  const value = {
+    token,
+    saveToken,
+    handleLogout,
+    blogs,
+    setBlogs,
+    input,
+    setInput,
+    fetchBlogs,
+  };
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
-};
+}

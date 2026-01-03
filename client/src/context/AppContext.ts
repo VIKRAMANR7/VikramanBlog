@@ -1,5 +1,5 @@
 import { createContext } from "react";
-import { Blog } from "../types/blog";
+import type { Blog } from "../types/blog";
 
 export interface AppContextType {
   token: string | null;

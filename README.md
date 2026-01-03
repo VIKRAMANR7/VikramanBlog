@@ -1,244 +1,242 @@
-# Vikraman Blog – Full-Stack MERN Blogging Platform
+# Vikraman Blog
 
-A modern, production-ready blogging system built with **React, TypeScript, Node.js, Express, MongoDB, ImageKit, and GROQ AI**.
-It includes **AI-powered blog generation**, **admin dashboard**, **JWT authentication**, **comment moderation**, and a clean responsive UI.
+A full-stack blogging platform built with React, TypeScript, Node.js, Express, MongoDB, ImageKit, and GROQ AI. Features AI-powered blog generation, admin dashboard, JWT authentication, and comment moderation.
 
----
+## Live Demo
 
-## 🌐 Live Demo
+- **Frontend:** https://vikraman-blog.vercel.app
+- **Backend:** https://vikraman-blog-server.vercel.app
 
-### **Frontend:** https://vikraman-blog.vercel.app/
+## Tech Stack
 
-### **Backend API:** https://vikraman-blog-server.vercel.app/
+**Frontend:** React, TypeScript, Vite, TailwindCSS, React Router, Axios, Motion, Marked
 
----
+**Backend:** Node.js, Express, TypeScript, MongoDB, Mongoose, ImageKit, GROQ AI, JWT, Multer
 
-## 📋 Table of Contents
+## Features
 
-- [Overview](#overview)
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Architecture](#architecture)
-- [Data Flow Diagrams](#data-flow-diagrams)
-- [Project Structure](#project-structure)
-- [Screenshots](#screenshots)
-- [Environment Variables](#environment-variables)
-- [Getting Started](#getting-started)
-- [API Documentation](#api-documentation)
-- [Deployment](#deployment)
-- [Contributing](#contributing)
-- [License](#license)
-
----
-
-## 🎯 Overview
-
-**Vikraman Blog** is a complete blog management platform designed with production-level coding standards.
-It includes:
-
-- AI content generation using **GROQ Llama 3.3**
-- Image optimization using **ImageKit**
-- Admin panel with authentication & moderation
-- Public-facing blog with categories, search, comments
-- Modern UI with **TailwindCSS**, **React Router**, and **Motion**
-
----
-
-## ✨ Features
-
-### 🔥 Core Features
-
-- Create, edit, delete blog posts
-- AI-powered article generation
-- Publish/unpublish workflow
-- Full markdown → HTML rendering
-- Image upload (with CDN + WebP optimization)
-- Search + category filtering
-- Responsive UI
+- AI-powered article generation using GROQ Llama 3.3
+- Image upload with CDN optimization via ImageKit
+- Markdown to HTML rendering
+- Category filtering and search
 - Comment system with admin approval
+- JWT-based admin authentication
+- Publish/unpublish workflow
+- Responsive design
 
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-
-- React 19
-- TypeScript
-- Vite
-- TailwindCSS 4
-- Axios
-- Motion / Framer
-- Marked (Markdown parser)
-- Moment.js
-- React Router DOM
-
-### Backend
-
-- Node.js
-- Express.js 5
-- TypeScript
-- MongoDB + Mongoose
-- ImageKit
-- GROQ (AI generation)
-- Multer
-- JWT authentication
-
----
-
-## 🏗️ Architecture
+## System Architecture
 
 ```mermaid
-flowchart TD
+flowchart TB
+    subgraph Client
+        React[React + TypeScript]
+        Vite[Vite]
+    end
 
-A[Client - React + TS + Vite] -- Axios HTTPS --> B[Backend - Express + TS]
+    subgraph Server
+        Express[Express API]
+        Auth[JWT Auth]
+        Controllers[Controllers]
+    end
 
-B --> C[MongoDB - Blogs, Comments]
-B --> D[ImageKit CDN - Image Optimization]
-B --> E[GROQ AI Engine - Llama 3.3]
+    subgraph Database
+        MongoDB[(MongoDB)]
+    end
 
-subgraph Frontend
-A
-end
+    subgraph External
+        ImageKit[ImageKit CDN]
+        GROQ[GROQ AI]
+    end
 
-subgraph Backend Services
-B --> C
-B --> D
-B --> E
-end
+    React --> Express
+    Express --> Auth
+    Auth --> Controllers
+    Controllers --> MongoDB
+    Controllers --> ImageKit
+    Controllers --> GROQ
 ```
 
----
+## Data Flow
 
-## 🔄 Data Flow Diagrams
-
-### **1. Blog Creation (With Image + AI)**
+### Blog Creation
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    User->>Frontend: Opens /admin/addBlog
-    User->>Frontend: Uploads image + fills fields
-    Frontend->>Backend: POST /api/blog (multipart/form-data)
-    Backend->>Auth: Validate JWT
-    Auth-->>Backend: OK
+    participant User
+    participant Client
+    participant API
+    participant ImageKit
+    participant MongoDB
 
-    Backend->>Multer: Parse uploaded image
-    Multer-->>Backend: Temp file buffer
-
-    Backend->>ImageKit: Upload image
-    ImageKit-->>Backend: Return URL
-
-    Backend->>MongoDB: Insert Blog document
-    MongoDB-->>Backend: Success
-
-    Backend-->>Frontend: Blog Created (201)
-    Frontend-->>User: Success message + redirect
+    User->>Client: Fill form + upload image
+    Client->>API: POST /api/blog
+    API->>API: Validate JWT
+    API->>ImageKit: Upload image
+    ImageKit-->>API: Image URL
+    API->>MongoDB: Save blog
+    MongoDB-->>API: Saved
+    API-->>Client: Success
+    Client-->>User: Redirect to dashboard
 ```
 
----
-
-### **2. AI Content Generation**
+### AI Content Generation
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    Admin->>Frontend: Enters prompt
-    Frontend->>Backend: POST /api/blog/generate
-    Backend->>Auth: Validate JWT
-    Auth-->>Backend: OK
+    participant Admin
+    participant Client
+    participant API
+    participant GROQ
 
-    Backend->>GROQ: Send prompt
-    GROQ-->>Backend: Return Markdown
-
-    Backend->>Utils: Clean markdown
-    Utils-->>Backend: Cleaned text
-
-    Backend-->>Frontend: AI content
-    Frontend-->>Admin: Prefill editor
+    Admin->>Client: Enter prompt
+    Client->>API: POST /api/blog/generate
+    API->>API: Validate JWT
+    API->>GROQ: Send prompt
+    GROQ-->>API: Markdown content
+    API->>API: Clean markdown
+    API-->>Client: Generated content
+    Client-->>Admin: Prefill editor
 ```
 
----
-
-### **3. Comment Lifecycle**
+### Comment Lifecycle
 
 ```mermaid
 sequenceDiagram
-    autonumber
-    User->>Frontend: Writes comment
-    Frontend->>Backend: POST /api/blog/:id/comment
-    Backend->>MongoDB: Save comment (isApproved=false)
-    MongoDB-->>Backend: Saved
-    Backend-->>Frontend: Pending approval
+    participant User
+    participant Admin
+    participant Client
+    participant API
+    participant MongoDB
 
-    Admin->>Frontend: Opens comments list
-    Frontend->>Backend: GET /api/admin/comments
-    Backend->>MongoDB: Fetch all comments
-    MongoDB-->>Backend: List
-    Backend-->>Frontend: Comments
+    User->>Client: Write comment
+    Client->>API: POST /api/blog/:id/comment
+    API->>MongoDB: Save (isApproved=false)
+    API-->>Client: Pending approval
 
-    Admin->>Frontend: Approves comment
-    Frontend->>Backend: PATCH /api/admin/comment/:id/approve
-    Backend->>MongoDB: Update comment
-    MongoDB-->>Backend: Updated
-    Backend-->>Frontend: Success
+    Admin->>Client: View comments
+    Client->>API: GET /api/admin/comments
+    API->>MongoDB: Fetch comments
+    API-->>Client: Comments list
+
+    Admin->>Client: Approve comment
+    Client->>API: PATCH /api/admin/comment/:id/approve
+    API->>MongoDB: Update isApproved
+    API-->>Client: Success
 ```
 
----
+## API Endpoints
 
-### **4. Authentication (JWT Login)**
+### Blog Routes
 
-```mermaid
-sequenceDiagram
-    autonumber
-    Admin->>Frontend: Enters credentials
-    Frontend->>Backend: POST /api/admin/login
-    Backend->>MongoDB: Validate admin
-    MongoDB-->>Backend: Admin found
-    Backend->>JWT: Sign token
-    JWT-->>Backend: Token
-    Backend-->>Frontend: { token }
-    Frontend->>LocalStorage: Save token
+| Method | Endpoint               | Description                |
+| ------ | ---------------------- | -------------------------- |
+| GET    | /api/blog              | Get all published blogs    |
+| GET    | /api/blog/:id          | Get single blog            |
+| POST   | /api/blog              | Create blog (auth)         |
+| DELETE | /api/blog/:id          | Delete blog (auth)         |
+| PATCH  | /api/blog/:id/publish  | Toggle publish (auth)      |
+| POST   | /api/blog/:id/comment  | Add comment                |
+| GET    | /api/blog/:id/comments | Get blog comments          |
+| POST   | /api/blog/generate     | Generate AI content (auth) |
+
+### Admin Routes
+
+| Method | Endpoint                       | Description            |
+| ------ | ------------------------------ | ---------------------- |
+| POST   | /api/admin/login               | Admin login            |
+| GET    | /api/admin/dashboard           | Dashboard stats (auth) |
+| GET    | /api/admin/blogs               | All blogs (auth)       |
+| GET    | /api/admin/comments            | All comments (auth)    |
+| PATCH  | /api/admin/comment/:id/approve | Approve comment (auth) |
+| DELETE | /api/admin/comment/:id         | Delete comment (auth)  |
+
+## Screenshots
+
+### Home Page
+
+![Home](client/public/screenshots/home.png)
+
+### Admin Dashboard
+
+![Dashboard](client/public/screenshots/dashboard.png)
+
+### Add Blog
+
+![Add Blog](client/public/screenshots/addblog.png)
+
+### Blog List
+
+![Blog List](client/public/screenshots/listblog.png)
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- pnpm
+- MongoDB database
+- ImageKit account
+- GROQ API key
+
+### Environment Variables
+
+**Server (.env)**
+
+```
+PORT=3000
+MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/dbname
+ADMIN_EMAIL=admin@example.com
+ADMIN_PASSWORD=your_password
+JWT_SECRET=your_jwt_secret
+IMAGEKIT_PUBLIC_KEY=your_public_key
+IMAGEKIT_PRIVATE_KEY=your_private_key
+IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_space
+GROQ_API_KEY=your_groq_key
 ```
 
----
+**Client (.env)**
 
-### **5. Home Page**
-
-```mermaid
-sequenceDiagram
-    autonumber
-    User->>Frontend: Visit homepage
-    Frontend->>Backend: GET /api/blog
-    Backend->>MongoDB: Fetch all published blogs
-    MongoDB-->>Backend: Blogs
-    Backend-->>Frontend: Blogs JSON
-    Frontend->>User: Render blog cards
+```
+VITE_BASE_URL=http://localhost:3000
 ```
 
----
+### Installation
 
-## 📁 Project Structure
+```bash
+git clone https://github.com/VIKRAMANR7/vikraman-blog.git
+cd vikraman-blog
+
+cd server && pnpm install
+cd ../client && pnpm install
+```
+
+### Run Development
+
+```bash
+cd server && pnpm dev
+cd client && pnpm dev
+```
+
+## Project Structure
 
 ```
 vikraman-blog/
 ├── client/
 │   ├── public/
 │   │   └── screenshots/
-│   │       ├── home.png
-│   │       ├── dashboard.png
-│   │       ├── addblog.png
-│   │       └── listblog.png
 │   ├── src/
 │   │   ├── api/
 │   │   ├── assets/
 │   │   ├── components/
+│   │   │   └── admin/
 │   │   ├── context/
 │   │   ├── pages/
+│   │   │   └── admin/
 │   │   ├── types/
 │   │   ├── App.tsx
 │   │   └── main.tsx
-│   └── package.json
+│   ├── tsconfig.json
+│   └── vite.config.ts
 │
 └── server/
     ├── src/
@@ -247,127 +245,12 @@ vikraman-blog/
     │   ├── middleware/
     │   ├── models/
     │   ├── routes/
+    │   ├── types/
     │   ├── utils/
     │   └── server.ts
-    └── package.json
+    └── tsconfig.json
 ```
 
----
+## Author
 
-## 📸 Screenshots
-
-### 🏠 Home Page
-
-![Home](client/public/screenshots/home.png)
-
-### 📊 Admin Dashboard
-
-![Dashboard](client/public/screenshots/dashboard.png)
-
-### ➕ Add Blog
-
-![Add Blog](client/public/screenshots/addblog.png)
-
-### 📚 Blog List
-
-![Blog List](client/public/screenshots/listblog.png)
-
----
-
-## 🔑 Environment Variables
-
-### **Server (.env)**
-
-```
-PORT=3000
-MONGODB_URI=your_mongodb_url
-
-ADMIN_EMAIL=admin@example.com
-ADMIN_PASSWORD=yourpassword
-JWT_SECRET=your_jwt_secret
-
-IMAGEKIT_PUBLIC_KEY=your_key
-IMAGEKIT_PRIVATE_KEY=your_key
-IMAGEKIT_URL_ENDPOINT=https://ik.imagekit.io/your_space
-
-GROQ_API_KEY=your_groq_key
-```
-
-### **Client (.env)**
-
-```
-VITE_BASE_URL=http://localhost:3000
-```
-
----
-
-## 🚀 Getting Started
-
-### Backend
-
-```
-cd server
-pnpm install
-pnpm dev
-```
-
-### Frontend
-
-```
-cd client
-pnpm install
-pnpm dev
-```
-
----
-
-## 📡 API Documentation (Summary)
-
-| Method | Endpoint                       | Description       |
-| ------ | ------------------------------ | ----------------- |
-| GET    | /api/blog                      | Fetch blogs       |
-| GET    | /api/blog/:id                  | Fetch single blog |
-| POST   | /api/blog                      | Create blog       |
-| DELETE | /api/blog/:id                  | Delete blog       |
-| POST   | /api/blog/:id/comment          | Add comment       |
-| PATCH  | /api/blog/:id/publish          | Toggle publish    |
-| POST   | /api/blog/generate             | AI content        |
-| GET    | /api/admin/comments            | Admin comments    |
-| PATCH  | /api/admin/comment/:id/approve | Approve comment   |
-
----
-
-## 🌐 Deployment
-
-### Frontend (Vercel)
-
-Build → `pnpm build`
-Output → `dist`
-
-### Backend (Vercel)
-
-Build → `pnpm build`
-Output → `dist`
-
----
-
-## 🤝 Contributing
-
-Pull Requests are welcome!
-
----
-
-## 📄 License
-
-MIT License.
-
----
-
-## 👤 Author
-
-**Vikraman R**
-GitHub: https://github.com/VIKRAMANR7
-
----
-
-Made with ❤️
+**Vikraman R** - [GitHub](https://github.com/VIKRAMANR7)

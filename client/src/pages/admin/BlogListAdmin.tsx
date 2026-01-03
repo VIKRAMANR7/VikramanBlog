@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
+
 import { api } from "../../api/axiosInstance";
+import type { Blog } from "../../types/blog";
 import BlogTableItem from "../../components/admin/BlogTableItem";
-import { Blog } from "../../types/blog";
 
 export default function BlogListAdmin() {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchBlogs = async () => {
+  async function fetchBlogs() {
     try {
       setLoading(true);
       const { data } = await api.get("/api/admin/blogs");
@@ -16,14 +17,14 @@ export default function BlogListAdmin() {
       if (data.success) {
         setBlogs(data.blogs);
       } else {
-        toast.error(data.message || "Failed to load blogs.");
+        toast.error(data.message || "Failed to load blogs");
       }
     } catch {
-      toast.error("Failed to load blogs.");
+      toast.error("Failed to load blogs");
     } finally {
       setLoading(false);
     }
-  };
+  }
 
   useEffect(() => {
     fetchBlogs();
@@ -31,7 +32,7 @@ export default function BlogListAdmin() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-full text-gray-500">Loading blogs…</div>
+      <div className="flex items-center justify-center h-full text-gray-500">Loading blogs...</div>
     );
   }
 

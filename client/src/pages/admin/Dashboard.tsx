@@ -1,7 +1,8 @@
 import { useEffect, useState, useCallback } from "react";
 import toast from "react-hot-toast";
+
 import { api } from "../../api/axiosInstance";
-import { Blog } from "../../types/blog";
+import type { Blog } from "../../types/blog";
 import { assets } from "../../assets/assets";
 import BlogTableItem from "../../components/admin/BlogTableItem";
 
@@ -19,7 +20,6 @@ export default function Dashboard() {
     drafts: 0,
     recentBlogs: [],
   });
-
   const [loading, setLoading] = useState(true);
 
   const fetchDashboard = useCallback(async () => {
@@ -46,14 +46,13 @@ export default function Dashboard() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full text-gray-500 text-lg">
-        Loading dashboard…
+        Loading dashboard...
       </div>
     );
   }
 
   return (
     <div className="flex-1 p-4 md:p-10 bg-blue-50/50">
-      {/* Stats – fresher style without abstraction */}
       <div className="flex flex-wrap gap-4">
         <div className="flex items-center gap-4 bg-white p-4 min-w-58 rounded shadow">
           <img src={assets.dashboard_icon_1} alt="" className="w-10 h-10" />
@@ -80,7 +79,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Recent Blogs */}
       <div className="mt-10">
         <div className="flex items-center gap-3 m-4 text-gray-600">
           <img src={assets.dashboard_icon_4} alt="" />

@@ -1,14 +1,22 @@
 import { NavLink } from "react-router-dom";
+
 import { assets } from "../../assets/assets";
 
-export default function Sidebar() {
-  const links = [
-    { to: "/admin", label: "Dashboard", icon: assets.home_icon, end: true },
-    { to: "/admin/addBlog", label: "Add Blog", icon: assets.add_icon },
-    { to: "/admin/listBlog", label: "Blog List", icon: assets.list_icon },
-    { to: "/admin/comments", label: "Comments", icon: assets.comment_icon },
-  ];
+interface NavItem {
+  to: string;
+  label: string;
+  icon: string;
+  end?: boolean;
+}
 
+const links: NavItem[] = [
+  { to: "/admin", label: "Dashboard", icon: assets.home_icon, end: true },
+  { to: "/admin/addBlog", label: "Add Blog", icon: assets.add_icon },
+  { to: "/admin/listBlog", label: "Blog List", icon: assets.list_icon },
+  { to: "/admin/comments", label: "Comments", icon: assets.comment_icon },
+];
+
+export default function Sidebar() {
   return (
     <aside className="w-20 md:w-64 bg-white border-r border-gray-200 h-full overflow-y-auto">
       {links.map(({ to, label, icon, end }) => (

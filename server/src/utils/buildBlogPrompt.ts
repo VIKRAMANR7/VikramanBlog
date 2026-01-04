@@ -1,4 +1,9 @@
-export function buildBlogPrompt(prompt: string) {
+type BlogPrompt = {
+  system: string;
+  user: string;
+};
+
+export function buildBlogPrompt(prompt: string): BlogPrompt {
   const trimmed = prompt.trim();
 
   const system = `You are an expert blog writer who creates engaging, well-structured articles with proper formatting.`;

@@ -1,11 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-export default function auth(req: Request, res: Response, next: NextFunction) {
+export default function auth(req: Request, res: Response, next: NextFunction): void {
   const header = req.headers.authorization;
 
   if (!header) {
-    return res.status(401).json({ success: false, message: "No token provided" });
+    res.status(401).json({ success: false, message: "No token provided" });
+    return;
   }
 
   const token = header.startsWith("Bearer ") ? header.split(" ")[1] : header;
@@ -16,8 +17,9 @@ export default function auth(req: Request, res: Response, next: NextFunction) {
     next();
   } catch (err) {
     if (err instanceof Error && err.name === "TokenExpiredError") {
-      return res.status(401).json({ success: false, message: "Token expired" });
+      res.status(401).json({ success: false, message: "Token expired" });
+      return;
     }
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    res.status(401).json({ success: false, message: "Invalid token" });
   }
 }

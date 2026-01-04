@@ -10,23 +10,26 @@ import { sendError } from "../utils/sendError.js";
 import { buildBlogPrompt } from "../utils/buildBlogPrompt.js";
 import { fixMarkdown } from "../utils/fixMarkdown.js";
 
-export async function addBlog(req: Request, res: Response) {
+export async function addBlog(req: Request, res: Response): Promise<void> {
   try {
     if (!req.body.blog) {
-      return res.status(400).json({ success: false, message: "Blog data missing" });
+      res.status(400).json({ success: false, message: "Blog data missing" });
+      return;
     }
 
     const blogData = JSON.parse(req.body.blog);
     const { title, subtitle = "", description, category, isPublished = true } = blogData;
 
     if (!title || !description || !category) {
-      return res.status(400).json({ success: false, message: "Missing required fields" });
+      res.status(400).json({ success: false, message: "Missing required fields" });
+      return;
     }
 
     const imageFile = req.file;
 
     if (!imageFile) {
-      return res.status(400).json({ success: false, message: "Image file is required" });
+      res.status(400).json({ success: false, message: "Image file is required" });
+      return;
     }
 
     const fileBuffer = fs.readFileSync(imageFile.path);
@@ -53,145 +56,157 @@ export async function addBlog(req: Request, res: Response) {
       isPublished,
     });
 
-    return res.json({ success: true, message: "Blog added successfully" });
+    res.json({ success: true, message: "Blog added successfully" });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function getAllBlogs(_req: Request, res: Response) {
+export async function getAllBlogs(_req: Request, res: Response): Promise<void> {
   try {
     const blogs = await Blog.find({ isPublished: true }).sort({ createdAt: -1 });
-    return res.json({ success: true, blogs });
+    res.json({ success: true, blogs });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function getBlogById(req: Request, res: Response) {
+export async function getBlogById(req: Request, res: Response): Promise<void> {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      return res.status(400).json({ success: false, message: "Invalid blog ID" });
+      res.status(400).json({ success: false, message: "Invalid blog ID" });
+      return;
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
+      res.status(404).json({ success: false, message: "Blog not found" });
+      return;
     }
 
-    return res.json({ success: true, blog });
+    res.json({ success: true, blog });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function deleteBlogById(req: Request, res: Response) {
+export async function deleteBlogById(req: Request, res: Response): Promise<void> {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      return res.status(400).json({ success: false, message: "Invalid blog ID" });
+      res.status(400).json({ success: false, message: "Invalid blog ID" });
+      return;
     }
 
     const deleted = await Blog.findByIdAndDelete(blogId);
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
+      res.status(404).json({ success: false, message: "Blog not found" });
+      return;
     }
 
     await Comment.deleteMany({ blog: blogId });
 
-    return res.json({ success: true, message: "Blog deleted successfully" });
+    res.json({ success: true, message: "Blog deleted successfully" });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function togglePublish(req: Request, res: Response) {
+export async function togglePublish(req: Request, res: Response): Promise<void> {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      return res.status(400).json({ success: false, message: "Invalid blog ID" });
+      res.status(400).json({ success: false, message: "Invalid blog ID" });
+      return;
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
+      res.status(404).json({ success: false, message: "Blog not found" });
+      return;
     }
 
     blog.isPublished = !blog.isPublished;
     await blog.save();
 
-    return res.json({
+    res.json({
       success: true,
       message: "Blog status updated",
       isPublished: blog.isPublished,
     });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function addComment(req: Request, res: Response) {
+export async function addComment(req: Request, res: Response): Promise<void> {
   try {
     const { blogId } = req.params;
     const { name, content } = req.body;
 
     if (!name || !content) {
-      return res.status(400).json({ success: false, message: "Name and content are required" });
+      res.status(400).json({ success: false, message: "Name and content are required" });
+      return;
     }
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      return res.status(400).json({ success: false, message: "Invalid blog ID" });
+      res.status(400).json({ success: false, message: "Invalid blog ID" });
+      return;
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
+      res.status(404).json({ success: false, message: "Blog not found" });
+      return;
     }
 
     await Comment.create({ blog: blogId, name, content });
 
-    return res.status(201).json({ success: true, message: "Comment added for review" });
+    res.status(201).json({ success: true, message: "Comment added for review" });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function getBlogComments(req: Request, res: Response) {
+export async function getBlogComments(req: Request, res: Response): Promise<void> {
   try {
     const { blogId } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(blogId)) {
-      return res.status(400).json({ success: false, message: "Invalid blog ID" });
+      res.status(400).json({ success: false, message: "Invalid blog ID" });
+      return;
     }
 
     const blog = await Blog.findById(blogId);
 
     if (!blog) {
-      return res.status(404).json({ success: false, message: "Blog not found" });
+      res.status(404).json({ success: false, message: "Blog not found" });
+      return;
     }
 
     const comments = await Comment.find({ blog: blogId, isApproved: true }).sort({ createdAt: -1 });
 
-    return res.json({ success: true, comments });
+    res.json({ success: true, comments });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }
 
-export async function generateContent(req: Request, res: Response) {
+export async function generateContent(req: Request, res: Response): Promise<void> {
   try {
     const { prompt } = req.body;
 
     if (!prompt?.trim()) {
-      return res.status(400).json({ success: false, message: "Prompt is required" });
+      res.status(400).json({ success: false, message: "Prompt is required" });
+      return;
     }
 
     const { system, user } = buildBlogPrompt(prompt);
@@ -209,13 +224,14 @@ export async function generateContent(req: Request, res: Response) {
     const markdown = completion?.choices?.[0]?.message?.content ?? "";
 
     if (!markdown) {
-      return res.status(500).json({ success: false, message: "AI did not return content" });
+      res.status(500).json({ success: false, message: "AI did not return content" });
+      return;
     }
 
     const fixedContent = fixMarkdown(prompt, markdown);
 
-    return res.json({ success: true, content: fixedContent });
+    res.json({ success: true, content: fixedContent });
   } catch (err) {
-    return sendError(res, err);
+    sendError(res, err);
   }
 }

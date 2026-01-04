@@ -17,7 +17,7 @@ export function AppProvider({ children }: AppProviderProps) {
   const [blogs, setBlogs] = useState<Blog[]>([]);
   const [input, setInput] = useState("");
 
-  const saveToken = useCallback((value: string | null) => {
+  const saveToken = useCallback((value: string | null): void => {
     if (!value) {
       localStorage.removeItem("token");
       setToken(null);
@@ -30,13 +30,13 @@ export function AppProvider({ children }: AppProviderProps) {
     setAuthToken(value);
   }, []);
 
-  const handleLogout = useCallback(() => {
+  const handleLogout = useCallback((): void => {
     localStorage.removeItem("token");
     setToken(null);
     setAuthToken(null);
   }, []);
 
-  const fetchBlogs = useCallback(async () => {
+  const fetchBlogs = useCallback(async (): Promise<void> => {
     try {
       const { data } = await api.get<{ success: boolean; blogs: Blog[] }>("/api/blog");
 

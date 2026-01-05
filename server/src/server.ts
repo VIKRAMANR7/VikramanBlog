@@ -20,7 +20,7 @@ app.use(
 
 app.use(express.json({ limit: "10mb" }));
 
-app.get("/", (_req, res) => {
+app.get("/", (_req: Request, res: Response) => {
   res.send("Vikraman Blog API is running");
 });
 
